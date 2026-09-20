@@ -1,0 +1,6 @@
+{
+  "name": "MayPrompt - Video & Rakurs AI Prompter",
+  "description": "Videodagi syomka uslubi, kamera rakursi, yoritish, mimika va obyekt pozasini tahlil qilib professional AI promtlar va rejissura shotlistini chiqarib beruvchi platforma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
