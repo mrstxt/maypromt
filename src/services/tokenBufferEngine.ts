@@ -123,7 +123,7 @@ export const checkTokenAllowance = (plan: UserPlan): TokenCheckResult => {
     if (remaining > 0) {
       return {
         allowed: false,
-        reason: `Gemini Free token zaxirasi tugagan. Yangilanishga ${formatCooldownCountdown(remaining)} qoldi. Kutmasdan davom etish uchun Plus yoki Pro tarifiga o'ting.`,
+        reason: `Gemini Free seans kvotasi yakunlandi. Yangilanishga ${formatCooldownCountdown(remaining)} qoldi. Kutmasdan davom etish uchun Plus yoki Pro tarifiga o'ting.`,
         inCooldown: true,
         cooldownRemainingMs: remaining,
         percentageUsed: 100,
@@ -139,7 +139,8 @@ export const checkTokenAllowance = (plan: UserPlan): TokenCheckResult => {
   const totalCap = config.freeMaxSessionTokens;
   const primaryCap = totalCap * config.primaryRatio; // 70%
 
-  const percentageUsed = Math.min(100, Math.round((state.totalUsedTokens / totalCap) * 100));
+  // Visual percentage used: reaches 100% when the 70% primary allocation is consumed!
+  const percentageUsed = Math.min(100, Math.round((state.totalUsedTokens / primaryCap) * 100));
   const isBufferActive = state.totalUsedTokens >= primaryCap;
 
   return {
@@ -224,7 +225,7 @@ export const canCreateNewChat = (plan: UserPlan): { allowed: boolean; reason?: s
   if (allowance.inCooldown) {
     return {
       allowed: false,
-      reason: `Sizning Free rejangizdagi tokenlar tugagan. 2-4 soatlik xavfsiz tanaffus o'tgach (${allowance.formattedCountdown}) yangi suhbat ochishingiz mumkin yoki cheklovsiz Plus/Pro ga o'ting.`,
+      reason: `Sizning Free rejangizdagi seans kvotasi to'lgan. Tiklanishga ${allowance.formattedCountdown} qoldi yoki cheklovsiz ishlash uchun Plus/Pro ga o'ting.`,
     };
   }
 

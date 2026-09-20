@@ -9,6 +9,7 @@ import { GoogleAuthModal } from './components/GoogleAuthModal';
 import { PlanModal } from './components/PlanModal';
 import { SettingsModal } from './components/SettingsModal';
 import { NotificationPopover } from './components/NotificationPopover';
+import { AdminPage } from './pages/AdminPage';
 import { useAuth } from './context/AuthContext';
 import { ShotAnalysisData, SampleVideoItem, ChatMessage, ChatSession } from './types';
 import {
@@ -44,6 +45,30 @@ Quyidagi extensionlardan birini tanlang yoki savolingizni to'g'ridan-to'g'ri yoz
 
 export default function App() {
   const { user, canAnalyze, recordUsage, isUnlimited, dailyLimit } = useAuth();
+
+  // Route isolation for dedicated Vercel admin panel
+  const [isAdminRoute, setIsAdminRoute] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      return path.startsWith('/admin') || search.includes('admin=true') || hash === '#admin';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname.toLowerCase();
+        const search = window.location.search.toLowerCase();
+        const hash = window.location.hash.toLowerCase();
+        setIsAdminRoute(path.startsWith('/admin') || search.includes('admin=true') || hash === '#admin');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Sidebar toggle state (desktop & mobile)
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
@@ -282,10 +307,6 @@ export default function App() {
       setActiveExtensionModal('instagram');
       return;
     }
-    if (ext === 'admin') {
-      setActiveExtensionModal('admin');
-      return;
-    }
   };
 
   // Video and Image Analysis Processing
@@ -416,6 +437,11 @@ export default function App() {
     setActiveExtensionModal('video_upload');
   };
 
+  // Standalone dedicated Vercel Admin Panel route (Completely isolated from main platform)
+  if (isAdminRoute) {
+    return <AdminPage />;
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-white text-zinc-900 font-sans">
       {/* 1. LEFT SIDEBAR (ChatGPT / Claude AI Style) */}
@@ -432,7 +458,6 @@ export default function App() {
         activeContextShot={activeContextShot}
         onClearContextShot={() => setActiveContextShot(null)}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenAdmin={() => setActiveExtensionModal('admin')}
         onOpenPlans={() => setIsPlansOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenExtension={handleSelectExtension}

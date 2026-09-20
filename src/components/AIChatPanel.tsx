@@ -266,10 +266,10 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
                 </div>
                 <div>
                   <p className="font-semibold text-amber-950">
-                    Gemini Free token limiti yakunlandi
+                    Gemini Free seans kvotasi yakunlandi
                   </p>
                   <p className="text-[11px] text-amber-800">
-                    Xavfsiz bufer qayta to'ldirilishi: <span className="font-mono font-bold">{tokenStatus.formattedCountdown}</span> (2-4 soatlik oraliq)
+                    Kvotangiz yangilanishiga qadar: <span className="font-mono font-bold">{tokenStatus.formattedCountdown}</span>
                   </p>
                 </div>
               </div>

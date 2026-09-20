@@ -7,7 +7,6 @@ import {
   PanelLeftClose,
   Trash2,
   Settings,
-  ShieldCheck,
   User,
   LogOut,
   MessageSquare,
@@ -31,10 +30,9 @@ interface AppSidebarProps {
   activeContextShot: ShotAnalysisData | null;
   onClearContextShot: () => void;
   onOpenSettings: () => void;
-  onOpenAdmin: () => void;
   onOpenPlans: () => void;
   onOpenAuth: () => void;
-  onOpenExtension: (ext: 'video' | 'youtube' | 'instagram' | 'admin') => void;
+  onOpenExtension: (ext: 'video' | 'youtube' | 'instagram') => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
@@ -50,12 +48,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   activeContextShot,
   onClearContextShot,
   onOpenSettings,
-  onOpenAdmin,
   onOpenPlans,
   onOpenAuth,
 }) => {
   const { user, logout, tokenStatus, checkCanCreateChat } = useAuth();
-  const isSuperAdmin = user?.email?.toLowerCase() === 'baytirp.uz@gmail.com';
 
   const userPlan = user?.plan || 'free';
   const isChatLocked = tokenStatus.inCooldown;
@@ -217,7 +213,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                       className={`h-full transition-all duration-300 ${
                         tokenStatus.inCooldown
                           ? 'bg-amber-500'
-                          : tokenStatus.isBufferActive
+                          : tokenStatus.percentageUsed > 80
                           ? 'bg-amber-400'
                           : 'bg-zinc-800'
                       }`}
@@ -226,10 +222,14 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-[9px] text-zinc-400">
-                    <span>{tokenStatus.isBufferActive ? '30% Smart Bufer' : '70% Asosiy kvota'}</span>
-                    {tokenStatus.inCooldown && (
+                    <span>{tokenStatus.inCooldown ? 'Kvota to\'ldi' : 'Seans kvotasi'}</span>
+                    {tokenStatus.inCooldown ? (
                       <span className="text-amber-600 font-medium font-mono">
                         ⏳ {tokenStatus.formattedCountdown}
+                      </span>
+                    ) : (
+                      <span className="font-mono text-zinc-400">
+                        {Math.max(0, 100 - tokenStatus.percentageUsed)}% qoldi
                       </span>
                     )}
                   </div>
@@ -289,7 +289,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </div>
         </div>
 
-        {/* Bottom footer: Settings, Admin, Profil */}
+        {/* Bottom footer: Settings, Profil */}
         <div className="p-3 border-t border-zinc-200/80 bg-zinc-50 shrink-0 space-y-1 text-xs">
           <button
             onClick={onOpenSettings}
@@ -298,16 +298,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             <Settings className="w-3.5 h-3.5 text-zinc-400" />
             <span>Sozlamalar</span>
           </button>
-
-          {isSuperAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200/50 transition-colors text-left font-medium"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
-              <span>Admin Panel</span>
-            </button>
-          )}
 
           <div className="pt-1 border-t border-zinc-200/60 mt-1">
             {user ? (

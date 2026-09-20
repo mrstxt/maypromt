@@ -1,7 +1,7 @@
 import React from 'react';
 import { Film, Youtube, Instagram, Camera, BookOpen } from 'lucide-react';
 
-export type ExtensionType = 'video' | 'youtube' | 'instagram' | 'admin' | 'camera_tools';
+export type ExtensionType = 'video' | 'youtube' | 'instagram' | 'camera_tools';
 
 interface ExtensionsBarProps {
   onSelectExtension: (ext: ExtensionType) => void;
@@ -17,7 +17,6 @@ export const ExtensionsBar: React.FC<ExtensionsBarProps> = ({
     { id: 'youtube' as ExtensionType, label: 'YouTube Shorts', icon: Youtube },
     { id: 'instagram' as ExtensionType, label: 'Instagram Reels', icon: Instagram },
     { id: 'camera_tools' as ExtensionType, label: 'Kamera Harakati', icon: Camera },
-    { id: 'admin' as ExtensionType, label: 'Kitoblar (Skills)', icon: BookOpen },
   ];
 
   return (

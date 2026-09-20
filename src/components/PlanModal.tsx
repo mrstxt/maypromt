@@ -65,8 +65,8 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
           <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 text-xs flex items-center gap-3">
             <Lock className="w-4 h-4 text-amber-600 shrink-0" />
             <div className="min-w-0">
-              <span className="font-semibold">Gemini Free seans tokenlari tugagan:</span>{' '}
-              Xavfsiz bufer 4-6 soatlik oraliqda tiklanmoqda ({tokenStatus.formattedCountdown}). Kutmasdan davom etish uchun quyidagi Plus yoki Pro tarifiga o'ting.
+              <span className="font-semibold">Gemini Free seans kvotasi yakunlandi:</span>{' '}
+              Kvotangiz tiklanishiga {tokenStatus.formattedCountdown} qoldi. Kutmasdan davom etish uchun quyidagi Plus yoki Pro tarifiga o'ting.
             </div>
           </div>
         )}
@@ -96,7 +96,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
               <div>
                 <h4 className="text-base font-bold text-zinc-900">{plans.free.name}</h4>
                 <div className="text-2xl font-bold text-zinc-900 mt-1">
-                  $0 <span className="text-xs font-normal text-zinc-500">/ Google Free</span>
+                  $0 <span className="text-xs font-normal text-zinc-500">/ Bepul</span>
                 </div>
                 <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
                   {plans.free.tagline}
@@ -107,7 +107,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
 
               <div className="space-y-1.5 text-xs text-zinc-600">
                 <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-                  Taqsimot qoidalari:
+                  Imkoniyatlar:
                 </p>
                 {plans.free.features.map((f, i) => (
                   <div key={i} className="flex items-start gap-2 text-[11px] leading-snug">
@@ -131,7 +131,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* 2. PLUS PLAN (Google Plus + $2 Markup) */}
+          {/* 2. PLUS PLAN */}
           <div
             className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
               currentPlan === 'plus'
@@ -157,9 +157,6 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
                 <div className="text-2xl font-bold text-zinc-900 mt-1">
                   {plans.plus.priceLabel}
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
-                  Google ($9.99) + MayPrompt vositalari ($2.00)
-                </p>
                 <p className="text-[11px] text-zinc-600 mt-1 leading-relaxed">
                   {plans.plus.tagline}
                 </p>
@@ -193,7 +190,7 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* 3. PRO PLAN (Google One AI Premium + $2 Markup) */}
+          {/* 3. PRO PLAN */}
           <div
             className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative ${
               currentPlan === 'pro'
@@ -219,9 +216,6 @@ export const PlanModal: React.FC<PlanModalProps> = ({ isOpen, onClose }) => {
                 <div className="text-2xl font-bold text-zinc-900 mt-1">
                   {plans.pro.priceLabel}
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
-                  Google One AI Pro ($19.99) + MayPrompt Studio ($2.00)
-                </p>
                 <p className="text-[11px] text-zinc-600 mt-1 leading-relaxed">
                   {plans.pro.tagline}
                 </p>

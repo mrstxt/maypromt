@@ -1,10 +1,9 @@
 import React from 'react';
-import { X, Film, Youtube, Instagram, BookOpen, ChevronLeft } from 'lucide-react';
+import { X, Film, Youtube, Instagram, ChevronLeft } from 'lucide-react';
 import { UploadZone } from './UploadZone';
 import { VideoFrameCapture } from './VideoFrameCapture';
 import { YouTubeInput } from './YouTubeInput';
 import { InstagramAnalyzer } from './InstagramAnalyzer';
-import { AdminPanel } from './AdminPanel';
 import { AnalysisPanel } from './AnalysisPanel';
 import { ShotAnalysisData, SampleVideoItem } from '../types';
 
@@ -12,7 +11,6 @@ export type ActiveExtensionModal =
   | 'video_upload'
   | 'youtube'
   | 'instagram'
-  | 'admin'
   | 'full_analysis'
   | null;
 
@@ -109,23 +107,7 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({
                     Instagram Profil Tahlili &amp; Viral Reels
                   </h3>
                   <p className="text-[11px] text-zinc-500">
-                    Statistika, 3-soniyalik ssenariylar va kitoblar asosida strategiya
-                  </p>
-                </div>
-              </>
-            )}
-
-            {activeModal === 'admin' && (
-              <>
-                <div className="w-8 h-8 rounded-xl bg-zinc-100 text-zinc-800 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm text-zinc-900">
-                    Admin Marketing Skills &amp; Kitoblar Bazasi
-                  </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    Hormozi, Brunson, Cialdini kitoblari va RAG qoidalari
+                    Statistika, 3-soniyalik ssenariylar va trend strategiyalari
                   </p>
                 </div>
               </>
@@ -226,13 +208,6 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({
                   onClose();
                 }}
               />
-            </div>
-          )}
-
-          {/* ADMIN VIEW */}
-          {activeModal === 'admin' && (
-            <div>
-              <AdminPanel />
             </div>
           )}
 
