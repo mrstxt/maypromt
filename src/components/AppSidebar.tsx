@@ -10,7 +10,10 @@ import {
   ShieldCheck,
   User,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Lock,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ChatSession, ShotAnalysisData } from '../types';
@@ -48,10 +51,23 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onClearContextShot,
   onOpenSettings,
   onOpenAdmin,
+  onOpenPlans,
   onOpenAuth,
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, tokenStatus, checkCanCreateChat } = useAuth();
   const isSuperAdmin = user?.email?.toLowerCase() === 'baytirp.uz@gmail.com';
+
+  const userPlan = user?.plan || 'free';
+  const isChatLocked = tokenStatus.inCooldown;
+
+  const handleNewChatClick = () => {
+    const check = checkCanCreateChat();
+    if (!check.allowed) {
+      onOpenPlans();
+      return;
+    }
+    onNewChat();
+  };
 
   return (
     <>
@@ -87,14 +103,30 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </button>
         </div>
 
-        {/* New Chat Button */}
+        {/* New Chat Button (locked if in cooldown) */}
         <div className="p-3 shrink-0">
           <button
-            onClick={onNewChat}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 text-xs font-semibold border border-zinc-200 shadow-2xs transition-all active:scale-98"
+            onClick={handleNewChatClick}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border shadow-2xs transition-all active:scale-98 ${
+              isChatLocked
+                ? 'bg-amber-50/80 border-amber-200 text-amber-900 hover:bg-amber-100'
+                : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-200'
+            }`}
           >
-            <Plus className="w-4 h-4 text-zinc-500" />
-            <span>Yangi suhbat</span>
+            <div className="flex items-center gap-2">
+              {isChatLocked ? (
+                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              ) : (
+                <Plus className="w-4 h-4 text-zinc-500 shrink-0" />
+              )}
+              <span>Yangi suhbat</span>
+            </div>
+
+            {isChatLocked && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-200/80 text-amber-900 font-mono">
+                {tokenStatus.formattedCountdown || 'Kutish'}
+              </span>
+            )}
           </button>
         </div>
 
@@ -122,11 +154,16 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             </button>
           </div>
 
-          {/* Connected */}
-          <div className="space-y-1">
+          {/* Connected / Token Status */}
+          <div className="space-y-1.5">
             <div className="px-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-              <span>Ulangan</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>Kvota &amp; Ta'rif</span>
+              <button
+                onClick={onOpenPlans}
+                className="text-[10px] text-zinc-600 hover:text-zinc-900 font-medium underline cursor-pointer"
+              >
+                O'zgartirish
+              </button>
             </div>
 
             {/* Active context shot */}
@@ -154,9 +191,62 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </div>
             )}
 
-            <div className="px-2.5 py-1.5 rounded-lg bg-zinc-200/40 text-[11px] text-zinc-500 flex items-center justify-between">
-              <span>Gemini 3.8 Flash</span>
-              <span className="text-[10px] text-emerald-600 font-medium">Faol</span>
+            {/* Token allocation status card */}
+            <div className="p-2.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-zinc-800 capitalize flex items-center gap-1">
+                  {userPlan === 'pro' && <Sparkles className="w-3 h-3 text-amber-500" />}
+                  {userPlan === 'plus' && <Zap className="w-3 h-3 text-blue-500" />}
+                  Gemini {userPlan}
+                </span>
+
+                {userPlan === 'free' ? (
+                  <span className="text-[10px] text-zinc-500 font-mono">
+                    {tokenStatus.inCooldown ? '0%' : `${100 - tokenStatus.percentageUsed}% qoldi`}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-emerald-600 font-semibold">Cheksiz</span>
+                )}
+              </div>
+
+              {/* Progress bar for Free plan */}
+              {userPlan === 'free' && (
+                <div className="space-y-1">
+                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden flex">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        tokenStatus.inCooldown
+                          ? 'bg-amber-500'
+                          : tokenStatus.isBufferActive
+                          ? 'bg-amber-400'
+                          : 'bg-zinc-800'
+                      }`}
+                      style={{ width: `${tokenStatus.percentageUsed}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9px] text-zinc-400">
+                    <span>{tokenStatus.isBufferActive ? '30% Smart Bufer' : '70% Asosiy kvota'}</span>
+                    {tokenStatus.inCooldown && (
+                      <span className="text-amber-600 font-medium font-mono">
+                        ⏳ {tokenStatus.formattedCountdown}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Upgrade button for free tier */}
+              {userPlan === 'free' && (
+                <button
+                  type="button"
+                  onClick={onOpenPlans}
+                  className="w-full mt-1 py-1 rounded-lg bg-zinc-900 hover:bg-black text-white text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
+                >
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <span>Plus ($11.99) ga o'tish</span>
+                </button>
+              )}
             </div>
           </div>
 

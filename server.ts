@@ -636,6 +636,8 @@ ${contextData ? JSON.stringify(contextData, null, 2) : "Kontekst yo'q, umumiy re
   }
 });
 
+export default app;
+
 // Vite middleware setup (development) or static asset serving (production)
 async function setupVite() {
   if (process.env.NODE_ENV !== "production") {
@@ -658,6 +660,9 @@ async function setupVite() {
   });
 }
 
-setupVite().catch((err) => {
-  console.error("Failed to start server:", err);
-});
+// Only listen directly when not running in Vercel serverless environment
+if (process.env.VERCEL !== "1") {
+  setupVite().catch((err) => {
+    console.error("Failed to start server:", err);
+  });
+}

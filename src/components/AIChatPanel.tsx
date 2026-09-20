@@ -8,10 +8,13 @@ import {
   Paperclip,
   X,
   ArrowUp,
-  Trash2
+  Trash2,
+  Lock,
+  Zap
 } from 'lucide-react';
 import { ChatMessage, ShotAnalysisData } from '../types';
 import { ExtensionsBar, ExtensionType } from './ExtensionsBar';
+import { useAuth } from '../context/AuthContext';
 
 interface AIChatPanelProps {
   messages: ChatMessage[];
@@ -23,6 +26,7 @@ interface AIChatPanelProps {
   onOpenFileUpload?: () => void;
   onOpenExtension: (ext: ExtensionType) => void;
   onClearChat?: () => void;
+  onOpenPlans?: () => void;
 }
 
 const QUICK_PROMPTS = [
@@ -42,7 +46,9 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   onOpenFileUpload,
   onOpenExtension,
   onClearChat,
+  onOpenPlans,
 }) => {
+  const { tokenStatus } = useAuth();
   const [input, setInput] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,6 +71,11 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
   }, [input]);
 
   const handleSubmit = (textToSend?: string) => {
+    if (tokenStatus.inCooldown) {
+      onOpenPlans?.();
+      return;
+    }
+
     const text = (textToSend || input).trim();
     if (!text && !attachedImage) return;
 
@@ -241,6 +252,36 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({
                   className="p-1 text-zinc-400 hover:text-zinc-700 rounded-md transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Cooldown notice if tokens depleted */}
+          {tokenStatus.inCooldown && (
+            <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-950">
+                    Gemini Free token limiti yakunlandi
+                  </p>
+                  <p className="text-[11px] text-amber-800">
+                    Xavfsiz bufer qayta to'ldirilishi: <span className="font-mono font-bold">{tokenStatus.formattedCountdown}</span> (2-4 soatlik oraliq)
+                  </p>
+                </div>
+              </div>
+
+              {onOpenPlans && (
+                <button
+                  type="button"
+                  onClick={onOpenPlans}
+                  className="shrink-0 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Plus ($11.99) ga o'tish</span>
                 </button>
               )}
             </div>

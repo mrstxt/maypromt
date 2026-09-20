@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserAccount, UserPlan } from '../types';
-import { PLANS, getTodayDateString } from '../data/plans';
+import { UserAccount, UserPlan, PlanConfig } from '../types';
+import { getDynamicPlans, getTodayDateString } from '../data/plans';
+import {
+  checkTokenAllowance,
+  consumeTurnTokens,
+  estimateTurnTokens,
+  canCreateNewChat,
+  resetTokenBufferState,
+  TokenCheckResult,
+} from '../services/tokenBufferEngine';
 
 interface AuthContextType {
   user: UserAccount | null;
@@ -14,9 +22,15 @@ interface AuthContextType {
   dailyLimit: number;
   isUnlimited: boolean;
   setCustomApiKey: (key: string) => void;
+  tokenStatus: TokenCheckResult;
+  consumeTokensForTurn: (text: string, imageCount?: number) => { allowed: boolean; inCooldown: boolean; reason?: string };
+  checkCanCreateChat: () => { allowed: boolean; reason?: string; countdown?: string };
+  resetTokenBuffer: () => void;
+  plans: Record<UserPlan, PlanConfig>;
+  refreshPlans: () => void;
 }
 
-const STORAGE_USER_KEY = 'mayprompt_user_auth_v1';
+const STORAGE_USER_KEY = 'mayprompt_user_auth_v2';
 
 const DEFAULT_GUEST_USER: UserAccount = {
   id: 'usr_default_guest',
@@ -32,12 +46,13 @@ const DEFAULT_GUEST_USER: UserAccount = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [plans, setPlans] = useState<Record<UserPlan, PlanConfig>>(() => getDynamicPlans());
+
   const [user, setUser] = useState<UserAccount | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_USER_KEY);
       if (saved) {
         const parsed: UserAccount = JSON.parse(saved);
-        // Check if date changed to reset today's quota
         const today = getTodayDateString();
         if (parsed.lastActiveDate !== today) {
           parsed.quotaUsedToday = 0;
@@ -49,9 +64,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Error loading user auth:', e);
     }
-    // Default logged in with Google account (seamless out-of-the-box experience)
     return DEFAULT_GUEST_USER;
   });
+
+  const [tokenStatus, setTokenStatus] = useState<TokenCheckResult>(() =>
+    checkTokenAllowance(user?.plan || 'free')
+  );
+
+  const refreshPlans = () => {
+    setPlans(getDynamicPlans());
+  };
 
   // Keep state synced with localStorage
   useEffect(() => {
@@ -66,11 +88,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  // Tick timer for cooldown countdown every 1s
+  useEffect(() => {
+    const check = () => {
+      const status = checkTokenAllowance(user?.plan || 'free');
+      setTokenStatus(status);
+    };
+
+    check();
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
+  }, [user?.plan]);
+
   const loginWithGoogle = (customEmail?: string, customName?: string, customAvatar?: string) => {
     const today = getTodayDateString();
     const email = customEmail || 'baytirp.uz@gmail.com';
     const name = customName || (email.split('@')[0].toUpperCase() + ' (Google)');
-    const avatar = customAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=ea580c,f97316,f59e0b`;
+    const avatar = customAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=18181b,27272a`;
 
     const newUser: UserAccount = {
       id: `usr_${Date.now()}`,
@@ -83,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       createdAt: Date.now(),
     };
     setUser(newUser);
+    setTokenStatus(checkTokenAllowance(newUser.plan));
   };
 
   const logout = () => {
@@ -98,6 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         plan: newPlan,
       };
     });
+    // Immediately refresh token status
+    setTimeout(() => {
+      setTokenStatus(checkTokenAllowance(newPlan));
+    }, 50);
   };
 
   const setCustomApiKey = (key: string) => {
@@ -112,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const currentPlanConfig = PLANS[user?.plan || 'free'];
+  const currentPlanConfig = plans[user?.plan || 'free'] || plans.free;
   const dailyLimit = currentPlanConfig.dailyLimit;
   const isUnlimited = currentPlanConfig.isUnlimited || !!user?.customApiKey;
   const quotaUsed = user?.quotaUsedToday || 0;
@@ -128,6 +167,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (isUnlimited) {
       return { allowed: true };
+    }
+
+    // Check token buffer cooldown
+    const allowance = checkTokenAllowance(user.plan);
+    if (allowance.inCooldown) {
+      return {
+        allowed: false,
+        reason: allowance.reason || "Token limitingiz tugagan. 2-4 soatlik tanaffusdan so'ng davom eting yoki Upgrade qiling.",
+      };
     }
 
     if (quotaUsed >= dailyLimit) {
@@ -165,6 +213,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const consumeTokensForTurn = (
+    text: string,
+    imageCount: number = 0
+  ): { allowed: boolean; inCooldown: boolean; reason?: string } => {
+    if (!user) return { allowed: false, inCooldown: false, reason: 'Tizimga kiring' };
+
+    const allowance = checkTokenAllowance(user.plan);
+    if (allowance.inCooldown) {
+      return {
+        allowed: false,
+        inCooldown: true,
+        reason: allowance.reason,
+      };
+    }
+
+    const estimated = estimateTurnTokens(text, imageCount);
+    const { triggeredCooldown } = consumeTurnTokens(user.plan, estimated);
+
+    const newStatus = checkTokenAllowance(user.plan);
+    setTokenStatus(newStatus);
+
+    return {
+      allowed: true,
+      inCooldown: triggeredCooldown,
+      reason: triggeredCooldown ? newStatus.reason : undefined,
+    };
+  };
+
+  const checkCanCreateChat = (): { allowed: boolean; reason?: string; countdown?: string } => {
+    const result = canCreateNewChat(user?.plan || 'free');
+    const status = checkTokenAllowance(user?.plan || 'free');
+    return {
+      allowed: result.allowed,
+      reason: result.reason,
+      countdown: status.formattedCountdown,
+    };
+  };
+
+  const resetTokenBuffer = () => {
+    resetTokenBufferState();
+    setTokenStatus(checkTokenAllowance(user?.plan || 'free'));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -179,6 +270,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         dailyLimit,
         isUnlimited,
         setCustomApiKey,
+        tokenStatus,
+        consumeTokensForTurn,
+        checkCanCreateChat,
+        resetTokenBuffer,
+        plans,
+        refreshPlans,
       }}
     >
       {children}

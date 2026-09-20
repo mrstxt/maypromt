@@ -95,6 +95,27 @@ export interface SampleVideoItem {
 
 export type UserPlan = 'free' | 'plus' | 'pro';
 
+export interface TokenAllocationConfig {
+  primaryRatio: number; // 0.70 (70% direct allocation to user)
+  bufferRatio: number;  // 0.30 (30% smoothing buffer)
+  googleSlidingWindowHours: number; // 4 hours
+  displayRechargeWindowHours: number; // 6 hours
+  cooldownMinHours: number; // 2 hours
+  cooldownMaxHours: number; // 4 hours
+  freeMaxSessionTokens: number; // e.g. 100,000 tokens
+}
+
+export interface TokenBufferState {
+  totalUsedTokens: number;
+  primaryUsedTokens: number;
+  bufferUsedTokens: number;
+  maxSessionTokens: number;
+  isBufferActive: boolean;
+  isInCooldown: boolean;
+  cooldownEndsAt: number | null; // Unix timestamp
+  cooldownTotalDurationMs: number;
+}
+
 export interface UserAccount {
   id: string;
   email: string;
@@ -105,6 +126,7 @@ export interface UserAccount {
   lastActiveDate: string; // YYYY-MM-DD
   createdAt: number;
   customApiKey?: string;
+  tokenBufferState?: TokenBufferState;
 }
 
 export interface PlanConfig {
@@ -114,8 +136,13 @@ export interface PlanConfig {
   dailyLimit: number;
   isUnlimited: boolean;
   priceLabel: string;
+  priceUSD: number;
+  googleBasePriceUSD: number;
+  markupUSD: number;
   tagline: string;
   features: string[];
+  googleIncludedFeatures: string[];
+  platformExtraFeatures: string[];
   badgeColor: string;
   accentColor: string;
 }
