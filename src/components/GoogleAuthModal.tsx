@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Shield, Sparkles, LogIn } from 'lucide-react';
+import { X, CheckCircle2, Shield, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface GoogleAuthModalProps {
@@ -22,7 +22,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customEmail.trim() || !customEmail.includes('@')) {
-      alert("Iltimos, to'g'ri Google elektron pochta manzilini kiriting.");
+      alert("Iltimos, to'g'ri Google elektron pochta manzilini (Gmail) kiriting.");
       return;
     }
     loginWithGoogle(customEmail.trim());
@@ -31,7 +31,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-zinc-200/90 relative space-y-5">
+      <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-zinc-200 relative space-y-5">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -42,7 +42,7 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
 
         {/* Google Branding Header */}
         <div className="text-center space-y-2 pt-1">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center mx-auto shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-50 border border-zinc-200 flex items-center justify-center mx-auto shadow-2xs">
             {/* Colorful Google G SVG */}
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
@@ -63,43 +63,43 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
               />
             </svg>
           </div>
-          <h3 className="text-xl font-extrabold text-zinc-900">
-            Google Akkaunt Bilan Kirish
+          <h3 className="text-xl font-bold text-zinc-900 tracking-tight">
+            Google orqali ro'yxatdan o'tish
           </h3>
-          <p className="text-xs text-zinc-500 max-w-xs mx-auto">
-            Videolarni tahlil qilib, professional AI promtlar olish uchun Google profilingiz orqali davom eting.
+          <p className="text-xs text-zinc-500 max-w-xs mx-auto leading-relaxed">
+            Videolarni tahlil qilish va kinematik promtlar olish uchun Google profilingiz bilan kiring.
           </p>
         </div>
 
         {/* Current logged in status if already signed in */}
         {user ? (
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-3">
+          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-3">
             <div className="flex items-center gap-3">
               <img
                 src={user.avatarUrl}
                 alt={user.name}
-                className="w-10 h-10 rounded-full border border-orange-200"
+                className="w-10 h-10 rounded-full border border-zinc-300 object-cover"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold text-zinc-900 truncate">{user.name}</div>
+                <div className="text-sm font-semibold text-zinc-900 truncate">{user.name}</div>
                 <div className="text-xs text-zinc-500 truncate">{user.email}</div>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Ulangan
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-zinc-200 text-zinc-800">
+                Faol
               </span>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-zinc-200 text-xs text-zinc-600">
-              <span>Kunlik limit:</span>
-              <span className="font-bold text-zinc-900">
-                {user.plan === 'pro' ? 'Cheklovsiz (Pro)' : `${user.quotaUsedToday} / ${user.plan === 'plus' ? 30 : 5} ishlatildi`}
+              <span>Tarifingiz:</span>
+              <span className="font-semibold text-zinc-900 capitalize">
+                {user.plan} tarifi
               </span>
             </div>
 
             <div className="flex gap-2 pt-1">
               <button
                 onClick={onClose}
-                className="flex-1 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-colors"
+                className="flex-1 py-2 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors"
               >
                 Davom etish
               </button>
@@ -108,49 +108,49 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
                   logout();
                   setIsCustomMode(true);
                 }}
-                className="px-3 py-2 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-800 text-xs font-medium transition-colors"
+                className="px-3 py-2 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-700 text-xs font-medium transition-colors"
               >
                 Chiqish
               </button>
             </div>
           </div>
         ) : (
-          /* Sign-in options */
+          /* Google Sign-in options */
           <div className="space-y-3">
-            {/* Suggested One-Click Google Account (From AI Studio environment) */}
+            {/* Primary Google One-Click Button */}
             <button
               onClick={() => handleQuickLogin('baytirp.uz@gmail.com')}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-zinc-200 hover:border-orange-500 hover:bg-orange-50/40 transition-all text-left group shadow-xs"
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-zinc-200 hover:border-zinc-400 bg-white hover:bg-zinc-50 transition-all text-left shadow-2xs group"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-400 to-amber-400 text-white font-bold flex items-center justify-center text-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-zinc-900 text-white font-bold flex items-center justify-center text-xs shrink-0">
                   B
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-zinc-900 group-hover:text-orange-700">
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-zinc-900 truncate">
                     baytirp.uz@gmail.com
                   </div>
                   <div className="text-[11px] text-zinc-500">
-                    Google AI Studio faol akkaunti
+                    Google hisobi orqali davom etish
                   </div>
                 </div>
               </div>
-              <span className="text-xs font-bold text-orange-600 bg-orange-100/70 px-2.5 py-1 rounded-lg">
-                1 bosishda kirish &rarr;
+              <span className="text-xs font-semibold text-zinc-900 bg-zinc-100 group-hover:bg-zinc-200 px-3 py-1.5 rounded-xl transition-colors shrink-0">
+                Kirish &rarr;
               </span>
             </button>
 
             {!isCustomMode ? (
               <button
                 onClick={() => setIsCustomMode(true)}
-                className="w-full py-2.5 text-xs text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors font-medium border border-dashed border-zinc-300"
+                className="w-full py-2.5 text-xs text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors font-medium border border-dashed border-zinc-300"
               >
                 Boshqa Google pochta bilan kirish...
               </button>
             ) : (
-              <form onSubmit={handleCustomSubmit} className="space-y-2 pt-1">
+              <form onSubmit={handleCustomSubmit} className="space-y-2.5 pt-1">
                 <label className="text-xs font-semibold text-zinc-700 block">
-                  Google Elektron Pochta (Gmail):
+                  Google Pochta (Gmail):
                 </label>
                 <input
                   type="email"
@@ -158,19 +158,19 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
                   placeholder="nomingiz@gmail.com"
                   value={customEmail}
                   onChange={(e) => setCustomEmail(e.target.value)}
-                  className="w-full text-xs bg-zinc-50 border border-zinc-300 rounded-xl px-3 py-2.5 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full text-xs bg-zinc-50 border border-zinc-300 rounded-xl px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 font-mono"
                 />
                 <div className="flex gap-2 pt-1">
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold transition-colors"
+                    className="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors"
                   >
-                    Kirish va Tasdiqlash
+                    Google Bilan Kirish
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsCustomMode(false)}
-                    className="px-3 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"
+                    className="px-3.5 py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"
                   >
                     Bekor
                   </button>
@@ -178,14 +178,9 @@ export const GoogleAuthModal: React.FC<GoogleAuthModalProps> = ({ isOpen, onClos
               </form>
             )}
 
-            <div className="pt-2 text-[11px] text-zinc-500 space-y-1 text-center">
-              <div className="flex items-center justify-center gap-1 text-emerald-700 font-medium">
-                <Shield className="w-3.5 h-3.5" />
-                Xavfsiz va maxfiy avtorizatsiya
-              </div>
-              <p>
-                Har bir yangi Google hisobiga kuniga <strong>5 ta bepul video tahlil</strong> taqdim etiladi.
-              </p>
+            <div className="pt-2 text-[11px] text-zinc-400 text-center flex items-center justify-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Google xavfsiz autentifikatsiyasi</span>
             </div>
           </div>
         )}
